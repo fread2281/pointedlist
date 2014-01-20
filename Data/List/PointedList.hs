@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, TypeOperators #-}
+{-# LANGUAGE TypeOperators #-}
 
 -- | An implementation of a zipper-like non-empty list structure that tracks
 --   an index position in the list (the 'focus').
@@ -8,13 +8,10 @@ import Prelude hiding (foldl, foldr, elem)
 
 import Control.Applicative
 import Control.Monad
--- import Control.Lens (set)
 import Data.Binary
-import Data.DeriveTH
 import Data.Foldable hiding (find)
 import Data.List hiding (length, foldl, foldr, find, elem)
 import qualified Data.List as List
-import Data.Maybe
 import Data.Traversable
 
 -- | The implementation of the pointed list structure which tracks the current
@@ -25,7 +22,9 @@ data PointedList a = PointedList
   , _suffix         :: [a]
   } deriving (Eq)
 
-$(derive makeBinary ''PointedList)
+instance Binary a => Binary (PointedList a) where
+  put (PointedList x1 x2 x3) = do put x1; put x2; put x3
+  get = do liftM3 PointedList get get get
 
 -- | Lens compatible with Control.Lens.
 reversedPrefix :: Functor f => ([a] -> f [a]) -> PointedList a -> f (PointedList a)
